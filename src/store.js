@@ -1,12 +1,14 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-// import VueCookies from 'vue-cookies'
-// import router from './Router';
+import VueCookies from 'vue-cookies'
+import router from './router';
+import AuthRepository from './api/AuthRepository'
 
 
 Vue.use(Vuex);
 
 const state = {
+  auth_token:null,
   subscriptions:[],
   registrations:[],
   sessions:[],
@@ -15,6 +17,56 @@ const state = {
 }
 // const getters = {};
 const actions = {
+  authenticate({commit},payload){
+    AuthRepository.authenticate(payload.username,payload.password).then((response)=>{
+      if(!response.data['error']){
+        commit('setAuthToken',response.data.token);
+        this.dispatch('init');
+        router.push('home');
+      }else{
+        console.log(response.data);
+      }
+    }).catch((err)=>{
+      throw new Error(`API ${err}`);
+    });
+  },
+  verifyToken({commit},payload){
+    console.log(payload);
+    AuthRepository.verify(payload.auth_token).then((response)=>{
+      if(!response.data['error']){
+        commit('setAuthToken',response.data.auth_token);
+        if(router.currentRoute.path == '/'){
+          this.dispatch('init');
+          router.push('home');
+        }
+      }else{
+        router.push('/');
+        console.log(response.data);
+      }
+    }).catch((err)=>{
+      throw new Error(`API ${err}`);
+    });
+  },
+  init(){
+    //get initial values
+    this.dispatch('getRegistrations');
+    this.dispatch('getSubscriptions');
+    this.dispatch('getSessions');
+    //subscribe to changes
+    //SESSION
+    this.dispatch('subscribeToNewSessions');
+    this.dispatch('subscribeToLostSessions');
+    //SUBSCRIPTIONS
+    this.dispatch('subscribeToNewSubscriptions');
+    this.dispatch('subscribeToLostSubscriptions');
+    this.dispatch('subscribeToOnSubscribe');
+    this.dispatch('subscribeToOnUnsubscribe');
+    //REGISTRATIONS
+    this.dispatch('subscribeToNewRegistrations');
+    this.dispatch('subscribeToLostRegistrations');
+
+    this.dispatch('subscribeToRandomNumber');
+  },
   //GETTERS
   getRegistrations(){
     Vue.$wamp.call('wamp.registration.list').then((data)=>{
@@ -124,6 +176,10 @@ const actions = {
   }
 };
 const mutations = {
+  setAuthToken(state,token){
+    VueCookies.set('auth_token',token,'4h');
+    state.auth_token = token;
+  },
   addRegistration(state,registration){
     state.registrations.push(registration);
   },

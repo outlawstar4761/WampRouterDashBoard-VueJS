@@ -7,6 +7,7 @@ import '../node_modules/vue-material/dist/vue-material.min.css';
 import '../node_modules/vue-material/dist/theme/default.css';
 
 import store from './store';
+import router from './router';
 
 Vue.config.productionTip = false;
 
@@ -24,24 +25,8 @@ Vue.use(VueMaterial);
 new Vue({
   render: h => h(App),
   store:store,
+  router:router,
   created(){
-    //get initial values
-    this.$store.dispatch('getRegistrations');
-    this.$store.dispatch('getSubscriptions');
-    this.$store.dispatch('getSessions');
-    //subscribe to changes
-    //SESSION
-    this.$store.dispatch('subscribeToNewSessions');
-    this.$store.dispatch('subscribeToLostSessions');
-    //SUBSCRIPTIONS
-    this.$store.dispatch('subscribeToNewSubscriptions');
-    this.$store.dispatch('subscribeToLostSubscriptions');
-    this.$store.dispatch('subscribeToOnSubscribe');
-    this.$store.dispatch('subscribeToOnUnsubscribe');
-    //REGISTRATIONS
-    this.$store.dispatch('subscribeToNewRegistrations');
-    this.$store.dispatch('subscribeToLostRegistrations');
-
-    this.$store.dispatch('subscribeToRandomNumber');
+    this.$store.dispatch('verifyToken',{auth_token:this.$cookies.get('auth_token')});
   }
 }).$mount('#app')
