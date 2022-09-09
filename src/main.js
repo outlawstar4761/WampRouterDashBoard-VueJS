@@ -12,7 +12,7 @@ import router from './router';
 Vue.config.productionTip = false;
 
 Vue.use(VueWamp,{
-  url:'ws://api.outlawdesigns.io:9700/ws',
+  url:'wss://api.outlawdesigns.io:9700/ws',
   realm:'realm1',
   onChallenge(session,method,extra){
     console.log({session, method, extra});
