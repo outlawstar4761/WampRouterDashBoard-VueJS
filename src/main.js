@@ -8,6 +8,7 @@ import '../node_modules/vue-material/dist/theme/default.css';
 
 import store from './store';
 import router from './router';
+import './registerServiceWorker'
 
 Vue.config.productionTip = false;
 
