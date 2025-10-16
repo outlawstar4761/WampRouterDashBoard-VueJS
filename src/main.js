@@ -1,6 +1,5 @@
 import Vue from 'vue'
 import App from './App.vue'
-import VueWamp from 'vue-wamp'
 
 import VueMaterial from 'vue-material';
 import '../node_modules/vue-material/dist/vue-material.min.css';
@@ -11,14 +10,6 @@ import router from './router';
 import './registerServiceWorker'
 
 Vue.config.productionTip = false;
-
-Vue.use(VueWamp,{
-  url:'wss://api.outlawdesigns.io:9700/ws',
-  realm:'realm1',
-  onChallenge(session,method,extra){
-    console.log({session, method, extra});
-  }
-});
 
 Vue.use(VueMaterial);
 

@@ -3,12 +3,27 @@ import Vuex from 'vuex'
 import VueCookies from 'vue-cookies'
 import router from './router';
 import AuthRepository from './api/AuthRepository'
-
+import autobahn from 'autobahn-browser';
 
 Vue.use(Vuex);
 
+/*WEB CONFIG*/
+const wampConn = new autobahn.Connection({
+  url:'wss://api.outlawdesigns.io:9700/ws',
+  realm:'realm1'
+});
+wampConn.onopen = (session) => {
+  console.log('connected to wamp router!');
+}
+wampConn.onclose = (reason,details) => {
+  console.error('WAMP connection closed:',reason, details);
+}
+wampConn.open();
+/*WEB CONFIG*/
+
 const state = {
   auth_token:null,
+  wampConn:null,
   subscriptions:[],
   registrations:[],
   sessions:[],
@@ -69,64 +84,64 @@ const actions = {
   },
   //GETTERS
   getRegistrations(){
-    Vue.$wamp.call('wamp.registration.list').then((data)=>{
+    wampConn.session.call('wamp.registration.list').then((data)=>{
       data.exact.map((id)=>{
         this.dispatch('getRegistration',id);
       });
     });
   },
   getRegistration({commit},registrationId){
-    Vue.$wamp.call('wamp.registration.get',[registrationId]).then((registration)=>{
+    wampConn.session.call('wamp.registration.get',[registrationId]).then((registration)=>{
       commit('addRegistration',registration);
     });
   },
   getSubscriptions(){
-    Vue.$wamp.call('wamp.subscription.list').then((data)=>{
+    wampConn.session.call('wamp.subscription.list').then((data)=>{
       data.exact.map((id)=>{
         this.dispatch('getSubscription',id);
       });
     });
   },
   getSubscription({commit},subscriptionId){
-    Vue.$wamp.call('wamp.subscription.get',[subscriptionId]).then((sub)=>{
+    wampConn.session.call('wamp.subscription.get',[subscriptionId]).then((sub)=>{
       sub['subscriber_count'] = 0
       commit('addSubscription',sub);
       this.dispatch('getSubscriberCount',subscriptionId);
     });
   },
   getSubscriberCount({commit},subscriptionId){
-    Vue.$wamp.call('wamp.subscription.count_subscribers',[subscriptionId]).then((number)=>{
+    wampConn.session.call('wamp.subscription.count_subscribers',[subscriptionId]).then((number)=>{
       commit('updateSubscriberCount',{subscriptionId:subscriptionId,number:number});
     }).catch(()=>{
       commit('removeSubscription',subscriptionId);
     });
   },
   getSessions(){
-    Vue.$wamp.call('wamp.session.list').then((data)=>{
+    wampConn.session.call('wamp.session.list').then((data)=>{
       data.map((id)=>{
         this.dispatch('getSession',id);
       });
     });
   },
   getSession({commit},sessionId){
-    Vue.$wamp.call('wamp.session.get',[sessionId]).then((session)=>{
+    wampConn.session.call('wamp.session.get',[sessionId]).then((session)=>{
       commit('addSession',session);
     });
   },
   //SESSION SUBSCRIPTIONS
   subscribeToNewSessions(){
-    Vue.$wamp.subscribe('wamp.session.on_join',(session)=>{
+    wampConn.session.subscribe('wamp.session.on_join',(session)=>{
       this.dispatch('getSession',session[0].session);
     });
   },
   subscribeToLostSessions({commit}){
-    Vue.$wamp.subscribe('wamp.session.on_leave',(sessionId)=>{
+    wampConn.session.subscribe('wamp.session.on_leave',(sessionId)=>{
       commit('removeEndedSession',sessionId);
     });
   },
   //SUBSCRIPTION SUBSCRIPTIONS
   subscribeToNewSubscriptions(){
-    Vue.$wamp.subscribe('wamp.subscription.on_create',(data)=>{
+    wampConn.session.subscribe('wamp.subscription.on_create',(data)=>{
       this.dispatch('getSubscription',data[1].id);
       //this.dispatch('getSubscriberCount',data[1].id);
     });
@@ -135,35 +150,35 @@ const actions = {
     //last subscriber unsubsribed
     //really no reason to use this because we handle it all
     //on unsubscre
-    Vue.$wamp.subscribe('wamp.subscription.on_delete',(data)=>{
+    wampConn.session.subscribe('wamp.subscription.on_delete',(data)=>{
       console.log('deleted: ' + data[1]);
     });
   },
   subscribeToOnSubscribe(){
-    Vue.$wamp.subscribe('wamp.subscription.on_subscribe',(data)=>{
+    wampConn.session.subscribe('wamp.subscription.on_subscribe',(data)=>{
       this.dispatch('getSubscriberCount',data[1]);
     });
   },
   subscribeToOnUnsubscribe(){
-    Vue.$wamp.subscribe('wamp.subscription.on_unsubscribe',(data)=>{
+    wampConn.session.subscribe('wamp.subscription.on_unsubscribe',(data)=>{
       console.log('unsubsribed: ' + data[1]);
       this.dispatch('getSubscriberCount',data[1]);
     });
   },
   //REGISTRATION SUBSCRIPTIONS
   subscribeToNewRegistrations(){
-    Vue.$wamp.subscribe('wamp.registration.on_create',(data)=>{
+    wampConn.session.subscribe('wamp.registration.on_create',(data)=>{
       this.dispatch('getRegistration',data[1].id);
     });
   },
   subscribeToLostRegistrations({commit}){
-    Vue.$wamp.subscribe('wamp.registration.on_delete',(data)=>{
+    wampConn.session.subscribe('wamp.registration.on_delete',(data)=>{
       commit('removeRegistration',data[1]);
     });
   },
   //FOR TESTING ONLY
   subscribeToRandomNumber({commit}){
-    Vue.$wamp.subscribe('io.outlawdesigns.test.random_number',(data)=>{
+    wampConn.session.subscribe('io.outlawdesigns.test.random_number',(data)=>{
       commit('updateRandomNumber',data);
     });
   },
