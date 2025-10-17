@@ -18,12 +18,12 @@ wampConn.onopen = (session) => {
 wampConn.onclose = (reason,details) => {
   console.error('WAMP connection closed:',reason, details);
 }
-wampConn.open();
+// wampConn.open();
 /*WEB CONFIG*/
 
 const state = {
   auth_token:null,
-  wampConn:null,
+  wampSession:null,
   subscriptions:[],
   registrations:[],
   sessions:[],
@@ -62,25 +62,30 @@ const actions = {
       throw new Error(`API ${err}`);
     });
   },
-  init(){
+  init({commit}){
     //get initial values
-    this.dispatch('getRegistrations');
-    this.dispatch('getSubscriptions');
-    this.dispatch('getSessions');
-    //subscribe to changes
-    //SESSION
-    this.dispatch('subscribeToNewSessions');
-    this.dispatch('subscribeToLostSessions');
-    //SUBSCRIPTIONS
-    this.dispatch('subscribeToNewSubscriptions');
-    this.dispatch('subscribeToLostSubscriptions');
-    this.dispatch('subscribeToOnSubscribe');
-    this.dispatch('subscribeToOnUnsubscribe');
-    //REGISTRATIONS
-    this.dispatch('subscribeToNewRegistrations');
-    this.dispatch('subscribeToLostRegistrations');
+    wampConn.onopen = (session)=> {
+      console.log(session);
+      commit('setWampSession',session);
+      this.dispatch('getRegistrations');
+      this.dispatch('getSubscriptions');
+      this.dispatch('getSessions');
+      //subscribe to changes
+      //SESSION
+      this.dispatch('subscribeToNewSessions');
+      this.dispatch('subscribeToLostSessions');
+      //SUBSCRIPTIONS
+      this.dispatch('subscribeToNewSubscriptions');
+      this.dispatch('subscribeToLostSubscriptions');
+      this.dispatch('subscribeToOnSubscribe');
+      this.dispatch('subscribeToOnUnsubscribe');
+      //REGISTRATIONS
+      this.dispatch('subscribeToNewRegistrations');
+      this.dispatch('subscribeToLostRegistrations');
 
-    this.dispatch('subscribeToRandomNumber');
+      this.dispatch('subscribeToRandomNumber');
+    };
+    wampConn.open();
   },
   //GETTERS
   getRegistrations(){
@@ -194,6 +199,9 @@ const mutations = {
   setAuthToken(state,token){
     VueCookies.set('auth_token',token,'4h');
     state.auth_token = token;
+  },
+  setWampSession(state,session){
+    state.wampSession = session;
   },
   addRegistration(state,registration){
     state.registrations.push(registration);

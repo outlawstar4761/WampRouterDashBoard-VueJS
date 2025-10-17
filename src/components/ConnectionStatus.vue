@@ -1,13 +1,16 @@
 <template>
-  <span v-bind:class="[$root.wampIsOpen ? 'greendDot':'',$root.wampIsRetrying ? 'orangeDot':'redDot']"></span>
-  <!-- <span v-if="$root.wampIsOpen">Connected</span>
-  <span v-else-if="$root.wampIsRetrying">Retrying...</span>
-  <span v-else>Disconnected</span> -->
+  <span v-bind:class="[connectionOpen ? 'greendDot':'redDot']"></span>
 </template>
 
 <script>
 export default {
-  name:'ConnectionStatus'
+  name:'ConnectionStatus',
+  computed:{
+    connectionOpen(){
+      //it'd be nice to capture isRetrying and use and orangeDot
+      return this.$store.state.wampSession?.isOpen ?? false;
+    }
+  }
 }
 </script>
 
