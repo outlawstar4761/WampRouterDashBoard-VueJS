@@ -5,12 +5,24 @@ import router from './router';
 import AuthRepository from './api/AuthRepository'
 import autobahn from 'autobahn-browser';
 
+import authClient from '@outlawdesigns/authenticationclient';
+
 Vue.use(Vuex);
 
-/*WEB CONFIG*/
+/*CONFIG*/
+const AUTH_URL = import.meta.env.VITE_AUTH_DISCOVERY_URI;
+const CLIENT_ID = import.meta.env.VITE_AUTH_CLIENT_ID;
+const REDIRECT_URI = import.meta.env.VITE_AUTH_REDIRECT_URI;
+const LOGOUT_URI = import.meta.env.VITE_AUTH_LOGOUT_URI;
+const AUTH_SCOPE = import.meta.env.VITE_AUTH_SCOPE;
+const ROUTER_URL = import.meta.env.VITE_WAMP_ROUTER_URI;
+const ROUTER_RLM = import.meta.env.VITE_WAMP_ROUTER_RLM;
+
+await authClient.init(AUTH_URL,CLIENT_ID);
+
 const wampConn = new autobahn.Connection({
-  url:'wss://api.outlawdesigns.io:9700/ws',
-  realm:'realm1'
+  url:ROUTER_URL,
+  realm:ROUTER_RLM
 });
 wampConn.onopen = (session) => {
   console.log('connected to wamp router!');
@@ -18,8 +30,7 @@ wampConn.onopen = (session) => {
 wampConn.onclose = (reason,details) => {
   console.error('WAMP connection closed:',reason, details);
 }
-// wampConn.open();
-/*WEB CONFIG*/
+/*CONFIG*/
 
 const state = {
   auth_token:null,
@@ -32,40 +43,54 @@ const state = {
 }
 // const getters = {};
 const actions = {
-  authenticate({commit},payload){
-    AuthRepository.authenticate(payload.username,payload.password).then((response)=>{
-      if(!response.data['error']){
-        commit('setAuthToken',response.data.token);
+  verifyToken({commit}){
+    let tokenSet = VueCookies.get('oauthTokenSet');
+    if(tokenSet === null){
+      authClient.authorizationCodeFlow(REDIRECT_URI,AUTH_SCOPE,ROUTER_URL).then((challengeResults)=>{
+        const verifier = challengeResults.codeVerifier;
+        const state = challengeResults.state;
+        sessionStorage.setItem('oauth_state',state);
+        sessionStorage.setItem('oauth_code_verifier',verifier);
+        window.location.href = challengeResults.redirectUri;
+      }).catch((err)=>{
+        console.log('Auth Error caught!');
+        console.log(err);
+      });
+    }else{
+      authClient.verifyAccessToken(tokenSet.access_token,ROUTER_URL).then((user)=>{
+        authClient.setTokenSet(tokenSet);
         this.dispatch('init');
-        router.push('home');
-      }else{
-        console.log(response.data);
-      }
-    }).catch((err)=>{
-      throw new Error(`API ${err}`);
+        router.push('/home');
+      }).catch((err)=>{
+        console.log('Verify Error caught!');
+        console.log(err);
+      });
+    }
+  },
+  swapAuthorizationCode({commit},authorizationCode){
+    const state = sessionStorage.getItem('oauth_state');
+    const verifier = sessionStorage.getItem('oauth_code_verifier');
+    let url = new URL(window.location.href);
+    if (!url.pathname.endsWith('/')) {
+      url.pathname += '/';
+    }
+    authClient.completeAuthFlow(url,state,verifier).then(()=>{
+      VueCookies.set('oathTokenSet',authClient.getTokenSet(),200,'/','localhost',true,'Strict');
+      //VueCookies.set('access_token',cronClient.get().auth.getAccessToken(),200,'/','outlawdesigns.io',true,'Strict');
+      this.dispatch('init');
+      router.push('/home');
     });
   },
-  verifyToken({commit},payload){
-    console.log(payload);
-    AuthRepository.verify(payload.auth_token).then((response)=>{
-      if(!response.data['error']){
-        commit('setAuthToken',response.data.auth_token);
-        if(router.currentRoute.path == '/'){
-          this.dispatch('init');
-          router.push('home');
-        }
-      }else{
-        router.push('/');
-        console.log(response.data);
-      }
-    }).catch((err)=>{
-      throw new Error(`API ${err}`);
+  logout(){
+    //we shouldn't have to remove cookie because token should be invalidated. It's not. What's up with that?
+    // VueCookies.remove('oathTokenSet');
+    authClient.logout(LOGOUT_URI,authClient.getIdToken()).then((redirectUri)=>{
+      window.location.href = redirectUri;
     });
   },
   init({commit}){
-    //get initial values
     wampConn.onopen = (session)=> {
-      console.log(session);
+      //get initial values
       commit('setWampSession',session);
       this.dispatch('getRegistrations');
       this.dispatch('getSubscriptions');

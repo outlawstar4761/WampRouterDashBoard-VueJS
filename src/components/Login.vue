@@ -1,16 +1,9 @@
 <template>
   <form>
     <div class="imgcontainer">
-        <img src="http://loe.outlawdesigns.io/Pictures/error/logo.png" alt="avatar" class="avatar">
+        <img src="../assets/logo.png" alt="avatar" class="avatar">
     </div>
-    <div class="container">
-        <!-- <h5 style="color:red">{{login.errorMsg}}</h5> -->
-        <label><b>Username:</b></label>
-        <input type="text" class="loginput" v-model="username" required placeholder="Username">
-        <label><b>Password:</b></label>
-        <input type="password" class="loginput" v-model="password" required placeholder="Password">
-        <button v-on:click="login">Login</button>
-    </div>
+    <div class="container"></div>
 </form>
 </template>
 
@@ -26,12 +19,18 @@ export default {
     }
   },
   methods:{
-    login(event){
-      if(event){
-        event.preventDefault();
-      }
-      this.$store.dispatch('authenticate',{username:this.username,password:this.password});
+
+  },
+  created(){
+    try{
+      // this.$store.dispatch('verifyToken',{auth_token:this.$cookies.get('auth_token')});
+      this.$store.dispatch('verifyToken');
+    }catch(err){
+      alert(err.message);
     }
+    /*
+    when this is created, check for a cookie. if it exists, pass it
+    */
   }
 }
 </script>
