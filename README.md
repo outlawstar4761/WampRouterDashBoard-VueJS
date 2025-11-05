@@ -47,8 +47,8 @@ Vue3 Dashboard (Vite)
 ### 1. Clone and install dependencies
 
 ```bash
-git clone https://github.com/yourname/wamp-dashboard.git
-cd wamp-dashboard
+git clone https://github.com/outlawdesigns-io/WampRouterDashBoard-VueJS
+cd WampRouterDashBoard-VueJS
 npm install
 
 ```
