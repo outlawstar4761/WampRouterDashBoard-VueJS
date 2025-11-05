@@ -1,55 +1,63 @@
 <template>
   <div class="hello">
-    <md-toolbar class="md-primary">
-      <h1>Wamp Router Dashboard</h1>
+    <v-toolbar color="info" :elevation="4">
       <ConnectionStatus></ConnectionStatus>
-    </md-toolbar>
+      <v-toolbar-title>Wamp Router Dashboard</v-toolbar-title>
+    </v-toolbar>
     <div class="viewport">
-      <md-toolbar class="md-title">
-        <h1 class="md-title">Open Sessions</h1>
-      </md-toolbar>
-      <md-table>
-        <md-table-head>Id</md-table-head>
-        <md-table-head>Peer</md-table-head>
-        <md-table-head>Realm</md-table-head>
-        <Session
-        v-for="session in sessions"
-        v-bind:key="session.session"
-        v-bind:session="session"></Session>
-      </md-table>
+      <v-toolbar :elevation="4" title="Open Sessions"></v-toolbar>
+      <v-table hover>
+        <thead>
+          <tr>
+            <th>Id</th>
+            <th>Peer</th>
+            <th>Realm</th>
+          </tr>
+        </thead>
+        <tbody>
+          <Session
+          v-for="session in sessions"
+          v-bind:key="session.session"
+          v-bind:session="session"></Session>
+        </tbody>
+      </v-table>
     </div>
     <div class="viewport">
-      <md-toolbar>
-        <h1 class="md-title">Registered Functions</h1>
-      </md-toolbar>
-      <md-table>
-        <md-table-row>
-          <md-table-head>Id</md-table-head>
-          <md-table-head>Name</md-table-head>
-          <md-table-head>Registered</md-table-head>
-        </md-table-row>
-        <Registration
-        v-for="registration in registrations"
-        v-bind:key="registration.id"
-        v-bind:registration="registration"></Registration>
-      </md-table>
+      <v-toolbar :elevation="4" title="Registered Functions"></v-toolbar>
+      <v-table hover>
+        <thead>
+          <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Registered</th>
+          </tr>
+        </thead>
+        <tbody>
+          <Registration
+          v-for="registration in registrations"
+          v-bind:key="registration.id"
+          v-bind:registration="registration"></Registration>
+        </tbody>
+      </v-table>
     </div>
     <div class="viewport">
-      <md-toolbar>
-        <h1 class="md-title">Active Subscriptions</h1>
-      </md-toolbar>
-      <md-table>
-        <md-table-row>
-          <md-table-head>Id</md-table-head>
-          <md-table-head>Name</md-table-head>
-          <md-table-head>Registered</md-table-head>
-          <md-table-head>Subscribers</md-table-head>
-        </md-table-row>
-        <Subscription
-        v-for="subscription in subscriptions"
-        v-bind:key="subscription.id"
-        v-bind:subscription="subscription"></Subscription>
-      </md-table>
+      <v-toolbar :elevation="4" title="Active Subscriptions"></v-toolbar>
+      <v-table hover>
+        <thead>
+          <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Registered</th>
+            <th>Subscribers</th>
+          </tr>
+        </thead>
+        <tbody>
+          <Subscription
+          v-for="subscription in subscriptions"
+          v-bind:key="subscription.id"
+          v-bind:subscription="subscription"></Subscription>
+        </tbody>
+      </v-table>
     </div>
   </div>
 </template>
@@ -105,6 +113,9 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+.left-aligned {
+  float: left;
+}
 /* h3 {
   margin: 40px 0 0;
 }

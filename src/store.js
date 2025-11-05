@@ -1,13 +1,10 @@
-import Vue from 'vue'
-import Vuex from 'vuex'
+import { createStore } from 'vuex';
 import VueCookies from 'vue-cookies'
 import router from './router';
 import AuthRepository from './api/AuthRepository'
 import autobahn from 'autobahn-browser';
 
 import authClient from '@outlawdesigns/authenticationclient';
-
-Vue.use(Vuex);
 
 /*CONFIG*/
 const AUTH_URL = import.meta.env.VITE_AUTH_DISCOVERY_URI;
@@ -268,8 +265,5 @@ const mutations = {
     state.lastRandomNumber = number[0];
   }
 }
-export default new Vuex.Store({
-  state,
-  actions,
-  mutations
-});
+
+export default createStore({state,actions,mutations});

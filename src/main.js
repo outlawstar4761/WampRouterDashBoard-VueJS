@@ -1,22 +1,25 @@
-import Vue from 'vue'
+import { createApp } from 'vue';
 import App from './App.vue'
-
-import VueMaterial from 'vue-material';
-import '../node_modules/vue-material/dist/vue-material.min.css';
-import '../node_modules/vue-material/dist/theme/default.css';
 
 import store from './store';
 import router from './router';
 import './registerServiceWorker'
 
-Vue.config.productionTip = false;
+//Vuetify
+// import '@mdi/font/css/materialdesignicons.css'
+import 'vuetify/styles'
+import { createVuetify } from 'vuetify'
+import * as components from 'vuetify/components'
+import * as directives from 'vuetify/directives'
 
-Vue.use(VueMaterial);
+const vuetify = createVuetify({
+  components,
+  directives
+});
 
 
-new Vue({
-  render: h => h(App),
-  store:store,
-  router:router,
-  created(){}
-}).$mount('#app')
+const app = createApp(App)
+app.use(router)
+app.use(vuetify)
+app.use(store);
+app.mount('#app')

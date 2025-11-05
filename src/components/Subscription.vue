@@ -1,10 +1,10 @@
 <template>
-  <md-table-row>
-    <md-table-cell>{{subscription.id}}</md-table-cell>
-    <md-table-cell>{{subscription.uri}}</md-table-cell>
-    <md-table-cell>{{new Date(subscription.created).toLocaleString()}}</md-table-cell>
-    <md-table-cell>{{subscription.subscriber_count}}</md-table-cell>
-  </md-table-row>
+  <tr>
+    <td>{{subscription.id}}</td>
+    <td>{{subscription.uri}}</td>
+    <td>{{new Date(subscription.created).toLocaleString()}}</td>
+    <td>{{subscription.subscriber_count}}</td>
+  </tr>
 </template>
 
 <script>
